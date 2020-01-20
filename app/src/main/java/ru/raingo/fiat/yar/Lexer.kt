@@ -10,7 +10,7 @@ enum class Lexeme{
     CLAY, LAY, TXT,
 
     //числа и строки
-    NUM, STR
+    STR
 }
 
 val SYMBOLS = mapOf(
@@ -23,25 +23,30 @@ val SYMBOLS = mapOf(
 )
 
 class Token (
-    type: Lexeme,
-    value: String?
+    val type: Lexeme,
+    val value: String? = null
 )
 
 object Lexer {
     const val TAG = "YarLexer"
 
-    fun tokenize(strings: List<String>): List<Lexeme> {
-        val tokens = mutableListOf<Lexeme>()
+    fun tokenize(strings: List<String>): List<Token> {
+        val tokens = mutableListOf<Token>()
 
         var line = 1
+        var stringBuffer = ""
         for (string in strings) {
             var index = 0
             while (true) {
-
                 val lexeme = getLexeme(string, index, line)
                 if (lexeme != null) {
-                    tokens.add(lexeme)
+                    addStringToken(tokens, stringBuffer)
+                    stringBuffer = ""
+
+                    tokens.add(createLexeme(lexeme))
                     index += SYMBOLS.filterValues { it == lexeme }.keys.first().length - 1
+                } else {
+                    stringBuffer += string[index]
                 }
 
                 if (index >= string.length - 1) break
@@ -51,8 +56,28 @@ object Lexer {
             line++
         }
 
-        Log.d(TAG, "tokens $tokens")
+
+        logStringLexeme(tokens)
         return tokens
+    }
+
+    fun logStringLexeme(tokens: List<Token>) {
+        for (token in tokens) {
+            Log.d(TAG, "token ${token.type}")
+            if (token.type == Lexeme.STR) Log.d("Yar", "String Lexeme: ${token.value}")
+        }
+    }
+
+    fun addStringToken(tokens: MutableList<Token>, stringBuffer: String) {
+        if (stringBuffer == "" || stringBuffer.trim() == "") return
+
+        val token = Token(Lexeme.STR, stringBuffer)
+        tokens.add(token)
+        //return tokens
+    }
+
+    fun createLexeme(type: Lexeme): Token {
+        return Token(type)
     }
 
     fun getLexeme(string: String, index: Int, line: Int): Lexeme? {
