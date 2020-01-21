@@ -4,7 +4,7 @@ import android.util.Log
 
 enum class Lexeme {
     //символы
-    LAB, RAB, CLAB,
+    LAB, RAB, LCB,
 
     //теги
     TAG,
@@ -17,7 +17,7 @@ enum class Lexeme {
 val SYMBOLS = mapOf(
     "<" to Lexeme.LAB,      //left angle bracket
     ">" to Lexeme.RAB,      //right angle bracket
-    "</" to Lexeme.CLAB,    //close left angle bracket
+    "</" to Lexeme.LCB,     //left close bracket
     "ConstraintLayout" to Lexeme.CLAY,
     "Lay" to Lexeme.LAY,
     "text" to Lexeme.TXT

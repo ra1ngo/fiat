@@ -15,17 +15,17 @@ enum class State {
 
 //таблица переходов
 val fsm = listOf(
-    //       LAB       RAB      CLAB       TAG       STR
-    mapOf("a" to 1, "b" to 0, "c" to 0, "d" to 0, "e" to 0),    //START
-    mapOf("a" to 0, "b" to 0, "c" to 0, "d" to 1, "e" to 0),    //START_TAG
-    mapOf("a" to 0, "b" to 1, "c" to 0, "d" to 0, "e" to 0),    //TAG_OPENING
-    mapOf("a" to 1, "b" to 0, "c" to 0, "d" to 1, "e" to 0),    //TAG_OPENING_RECEIVED
-    mapOf("a" to 0, "b" to 0, "c" to 1, "d" to 0, "e" to 0),    //TEXT_RECEIVED
-    //mapOf("a" to 0, "b" to 0, "c" to 0, "d" to 0, "e" to 0),    //CORRECTION_TEXT
-    mapOf("a" to 0, "b" to 0, "c" to 0, "d" to 1, "e" to 0),    //WAIT_CLOSED_TAG
-    mapOf("a" to 0, "b" to 1, "c" to 0, "d" to 0, "e" to 0),    //TAG_CLOSED
-    //mapOf("a" to 0, "b" to 0, "c" to 0, "d" to 0, "e" to 0),    //END_TAG
-    mapOf("a" to 0, "b" to 0, "c" to 0, "d" to 0, "e" to 0)     //END
+    //      LAB  RAB  RCB  TAG  STR
+    listOf(  1,   0,   0,   0,   0  ),  //START
+    listOf(  0,   0,   0,   1,   0  ),  //START_TAG
+    listOf(  0,   1,   0,   0,   0  ),  //TAG_OPENING
+    listOf(  1,   0,   0,   1,   0  ),  //TAG_OPENING_RECEIVED
+    listOf(  0,   0,   1,   0,   0  ),  //TEXT_RECEIVED
+//  listOf(  0,   0,   0,   0,   0  ),  //CORRECTION_TEXT
+    listOf(  0,   0,   0,   1,   0  ),  //WAIT_CLOSED_TAG
+    listOf(  0,   1,   0,   0,   0  ),  //TAG_CLOSED
+//  listOf(  0,   0,   0,   0,   0  ),  //END_TAG
+    listOf(  0,   0,   0,   0,   0  )   //END
 )
 
 object Parser {
