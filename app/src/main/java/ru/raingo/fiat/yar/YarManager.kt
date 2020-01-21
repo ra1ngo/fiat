@@ -9,7 +9,9 @@ import java.io.InputStreamReader
 class YarManager(private val context: Context) {
     fun createView(path: Int): View {
         val strings = readFile(path)
-        Lexer.tokenize(strings)
+        val tokens = Lexer.tokenize(strings)
+        Parser.parse(tokens)
+
         return View(context)
     }
 

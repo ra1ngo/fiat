@@ -64,7 +64,7 @@ object Lexer {
     fun logStringLexeme(tokens: List<Token>) {
         for (token in tokens) {
             Log.d(TAG, "token ${token.type}")
-            if (token.type == Lexeme.STR) Log.d("Yar", "String Lexeme: ${token.value}")
+            if (token.type == Lexeme.STR) Log.d(TAG, "String Lexeme: ${token.value}")
         }
     }
 
