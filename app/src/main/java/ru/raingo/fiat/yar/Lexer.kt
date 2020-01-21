@@ -2,11 +2,12 @@ package ru.raingo.fiat.yar
 
 import android.util.Log
 
-enum class Lexeme{
+enum class Lexeme {
     //символы
     LAB, RAB, CLAB,
 
     //теги
+    TAG,
     CLAY, LAY, TXT,
 
     //числа и строки
@@ -68,6 +69,9 @@ object Lexer {
         }
     }
 
+    //Нужно продумать экранирование для символов "<" и "</"
+    //Например, "Hello <Ilya>!" - это все строка
+    //Если эти лексемы экранированы, то соответствующие токены не создаются, а присоединяются к stringBuffer
     fun addStringToken(tokens: MutableList<Token>, stringBuffer: String) {
         if (stringBuffer == "" || stringBuffer.trim() == "") return
 
