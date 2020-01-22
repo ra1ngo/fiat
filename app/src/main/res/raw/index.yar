@@ -1,3 +1,1 @@
-<ConstraintLayout>
-    <text>Hello World!</text>
-</ConstraintLayout>
+<text>Hello World!</text>

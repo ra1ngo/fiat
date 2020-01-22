@@ -1,14 +1,13 @@
 package ru.raingo.fiat.yar
 
 import android.util.Log
+import java.util.regex.Pattern
 
 enum class Lexeme(val index: Int) {
     //символы
     LAB(0), RAB(1), LCB(2),
 
     //теги
-    CLAY(999), LAY(9999), TXT(3),
-
     TAG(4),
 
     //числа и строки
@@ -20,13 +19,15 @@ enum class Lexeme(val index: Int) {
     }
 }
 
-val SYMBOLS = mapOf(
+val PATTERN = mapOf(
     "<" to Lexeme.LAB,      //left angle bracket
     ">" to Lexeme.RAB,      //right angle bracket
     "</" to Lexeme.LCB,     //left close bracket
-    "ConstraintLayout" to Lexeme.CLAY,
-    "Lay" to Lexeme.LAY,
-    "text" to Lexeme.TXT
+
+    //TAGS
+    "ConstraintLayout" to Lexeme.TAG,
+    "Lay" to Lexeme.TAG,
+    "text" to Lexeme.TAG
 )
 
 class Token (
@@ -47,13 +48,13 @@ object Lexer {
         for (string in strings) {
             var index = 0
             while (true) {
-                val lexeme = getLexeme(string, index, line)
-                if (lexeme != null) {
+                val (lexeme, pattern) = getLexemeAndPattern(string, index, line) ?: Pair(null, null)
+                if (lexeme != null && pattern != null) {
                     addStringToken(tokens, stringBuffer)
                     stringBuffer = ""
 
-                    tokens.add(createLexeme(lexeme))
-                    index += SYMBOLS.filterValues { it == lexeme }.keys.first().length - 1
+                    tokens.add(createLexeme(lexeme, pattern))
+                    index += pattern.length - 1
                 } else {
                     stringBuffer += string[index]
                 }
@@ -72,8 +73,7 @@ object Lexer {
 
     fun logStringLexeme(tokens: List<Token>) {
         for (token in tokens) {
-            Log.d(TAG, "token ${token.type}")
-            if (token.type == Lexeme.STR) Log.d(TAG, "String Lexeme: ${token.value}")
+            Log.d(TAG, "token ${token.type}: ${token.value}")
         }
     }
 
@@ -88,22 +88,24 @@ object Lexer {
         //return tokens
     }
 
-    fun createLexeme(type: Lexeme): Token {
-        return Token(type)
+    fun createLexeme(lexeme: Lexeme, pattern: String): Token {
+        val tokenValue = if (lexeme == Lexeme.TAG) pattern else null
+
+        return Token(lexeme, tokenValue)
     }
 
-    fun getLexeme(string: String, index: Int, line: Int): Lexeme? {
-        val buffer = mutableListOf<Lexeme>()
+    fun getLexemeAndPattern(string: String, index: Int, line: Int): Pair<Lexeme?, String?>? {
+        val buffer = mutableListOf<Pair<Lexeme?, String?>>()
 
-        for ((pattern, lexeme) in SYMBOLS) {
+        for ((pattern, lexeme) in PATTERN) {
             var posEnd = index
             while (true) {
                 if (posEnd >= string.length) break
                 val targetString = string.subSequence(index, posEnd + 1)
 
                 if (pattern == targetString) {
-                    Log.d(TAG, "$line,${index+1} string $targetString, pattern $pattern ADD TO BUFFER ")
-                    buffer.add(lexeme)
+                    Log.d(TAG, "$line,${index+1} string $targetString, pattern $pattern ADD TO BUFFER")
+                    buffer.add(Pair(lexeme, pattern))
                     break
                 }
 
@@ -120,6 +122,6 @@ object Lexer {
         }
         Log.d(TAG, " \r\n")
 
-        return buffer.max()
+        return buffer.maxBy { it.second?.length ?: 0 }
     }
 }

@@ -42,6 +42,8 @@ object Parser {
     var currentToken: Token? = null
 
     fun parse(tokens: List<Token>) {
+        Log.d(TAG, "\n===============\n")
+
         for (token in tokens) {
             currentToken = token
             val action = actions[state.index]
