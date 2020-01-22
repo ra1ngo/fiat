@@ -8,10 +8,10 @@ enum class Lexeme(val index: Int) {
     LAB(0), RAB(1), LCB(2),
 
     //теги
-    TAG(4),
+    TAG(3),
 
     //числа и строки
-    STR(5);
+    STR(4);
 
     companion object {
         private val map = State.values().associateBy(State::index)
@@ -34,7 +34,7 @@ class Token (
     val type: Lexeme,
     val value: String? = null
 ) {
-    fun getLexemeIndex(): Int? = Lexeme.fromIndex(type.index)?.index
+    fun getLexemeIndex(): Int = type.index
 }
 
 object Lexer {
