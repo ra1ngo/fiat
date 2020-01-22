@@ -2,16 +2,22 @@ package ru.raingo.fiat.yar
 
 import android.util.Log
 
-enum class Lexeme {
+enum class Lexeme(val index: Int) {
     //символы
-    LAB, RAB, LCB,
+    LAB(0), RAB(1), LCB(2),
 
     //теги
-    TAG,
-    CLAY, LAY, TXT,
+    CLAY(999), LAY(9999), TXT(3),
+
+    TAG(4),
 
     //числа и строки
-    STR
+    STR(5);
+
+    companion object {
+        private val map = State.values().associateBy(State::index)
+        fun fromIndex(index: Int) = map[index]
+    }
 }
 
 val SYMBOLS = mapOf(
@@ -26,7 +32,9 @@ val SYMBOLS = mapOf(
 class Token (
     val type: Lexeme,
     val value: String? = null
-)
+) {
+    fun getLexemeIndex(): Int? = Lexeme.fromIndex(type.index)?.index
+}
 
 object Lexer {
     const val TAG = "YarLexer"
