@@ -3,21 +3,23 @@ package ru.raingo.fiat.yar
 import android.content.Context
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class YarManager(private val context: Context) {
     val TAG = "YarManager"
 
-    fun createView(path: Int): View {
+    fun createView(path: Int): ViewGroup? {
         val strings = readFile(path)
         val tokens = Lexer.tokenize(strings)
         val ast = Parser.parse(tokens)
+        val view = ViewBuilder(context).build(ast)
 
-        Log.d(TAG, "\n===============\n")
-        readAst(ast)
+        //Log.d(TAG, "\n===============\n")
+        //readAst(ast)
 
-        return View(context)
+        return view
     }
 
     fun readAst(root: Node) {

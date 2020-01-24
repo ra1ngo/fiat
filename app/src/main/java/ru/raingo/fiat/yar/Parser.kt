@@ -27,7 +27,7 @@ val transitionTable = listOf(
     listOf(  0,   0,   0,   2,   0  ),  //START_TAG
     listOf(  0,   3,   0,   0,   0  ),  //TAG_OPENING
     listOf(  1,   0,   6,   0,   4  ),  //TAG_OPENING_RECEIVED
-    listOf(  0,   0,   6,   0,   4  ),  //TEXT_RECEIVED
+    listOf(  1,   0,   6,   0,   4  ),  //TEXT_RECEIVED
     listOf(  0,   0,   0,   0,   0  ),  //CORRECTION_TEXT
     listOf(  0,   0,   0,   7,   0  ),  //WAIT_CLOSED_TAG
     listOf(  0,   8,   0,   0,   0  ),  //TAG_CLOSED
