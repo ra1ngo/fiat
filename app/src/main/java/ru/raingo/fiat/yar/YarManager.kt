@@ -7,12 +7,24 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class YarManager(private val context: Context) {
+    val TAG = "YarManager"
+
     fun createView(path: Int): View {
         val strings = readFile(path)
         val tokens = Lexer.tokenize(strings)
-        Parser.parse(tokens)
+        val ast = Parser.parse(tokens)
+
+        Log.d(TAG, "\n===============\n")
+        readAst(ast)
 
         return View(context)
+    }
+
+    fun readAst(root: Node) {
+        Log.d(TAG, "Node(id=${root.id}, tag=${root.tag}, nodeId=${root.nodeId}, textList=${root.textList})")
+        for (node in root.nodes) {
+            readAst(node)
+        }
     }
 
     fun readFile(path: Int): List<String> {

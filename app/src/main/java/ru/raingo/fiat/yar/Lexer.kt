@@ -12,11 +12,6 @@ enum class Lexeme(val index: Int) {
 
     //числа и строки
     STR(4);
-
-    companion object {
-        private val map = State.values().associateBy(State::index)
-        fun fromIndex(index: Int) = map[index]
-    }
 }
 
 val PATTERN = mapOf(
@@ -25,8 +20,7 @@ val PATTERN = mapOf(
     "</" to Lexeme.LCB,     //left close bracket
 
     //TAGS
-    "ConstraintLayout" to Lexeme.TAG,
-    "Lay" to Lexeme.TAG,
+    "lay" to Lexeme.TAG,
     "text" to Lexeme.TAG
 )
 

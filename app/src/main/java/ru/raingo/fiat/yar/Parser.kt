@@ -26,12 +26,12 @@ val transitionTable = listOf(
     listOf(  1,   0,   0,   0,   0  ),  //START
     listOf(  0,   0,   0,   2,   0  ),  //START_TAG
     listOf(  0,   3,   0,   0,   0  ),  //TAG_OPENING
-    listOf(  0,   0,   6,   0,   4  ),  //TAG_OPENING_RECEIVED
+    listOf(  1,   0,   6,   0,   4  ),  //TAG_OPENING_RECEIVED
     listOf(  0,   0,   6,   0,   4  ),  //TEXT_RECEIVED
     listOf(  0,   0,   0,   0,   0  ),  //CORRECTION_TEXT
     listOf(  0,   0,   0,   7,   0  ),  //WAIT_CLOSED_TAG
     listOf(  0,   8,   0,   0,   0  ),  //TAG_CLOSED
-    listOf(  0,   0,   0,   0,   0  ),  //END_TAG
+    listOf(  1,   0,   6,   0,   4  ),  //END_TAG
     listOf(  0,   0,   0,   0,   0  )   //END
 )
 
@@ -41,24 +41,40 @@ object Parser {
     var state = State.START
     var currentToken: Token? = null
 
-    fun parse(tokens: List<Token>) {
-        Log.d(TAG, "\n===============\n")
+    var counterId = 0
+    val root = Node(counterId, Tag.ROOT, -1)
+    val stack: MutableList<Node> = mutableListOf(root)
+    var error = false
+
+    fun parse(tokens: List<Token>): Node {
+        actions[state.index]()  //больше вызываться этот хендлер не будет, 0 - будет ошибкой/
 
         for (token in tokens) {
-            currentToken = token
-            val action = actions[state.index]
+            if (error) break
 
-            action()
+            currentToken = token
 
             val lexemeIndex: Int = token.getLexemeIndex()
             Log.d(TAG, "state $state, state.index ${state.index}, lexemeIndex $lexemeIndex")
             val stateIndex: Int = transitionTable[state.index][lexemeIndex]
-            if (stateIndex == 0) { Log.d(TAG, "ошибка stateIndex == 0"); return }
+            if (stateIndex == 0) { Log.d(TAG, "ошибка stateIndex == 0"); break }
 
             val nextState = State.fromIndex(stateIndex)
-            if (nextState == null) { Log.d(TAG, "ошибка state is null"); return }
+            if (nextState == null) { Log.d(TAG, "ошибка state is null"); break }
             state = State.fromIndex(stateIndex)!!
+
+            val action = actions[state.index]
+            action()
         }
+
+        actions[State.END.index]()
+
+        return root
+    }
+
+    fun error() {
+        error = true
+        Log.d(TAG, "error $counterId\n$root\n$stack")
     }
 
     //ACTIONS
@@ -68,6 +84,7 @@ object Parser {
     )
 
     fun onStart() {
+        Log.d(TAG, "\n===============\n")
         Log.d(TAG, "onStart")
     }
 
@@ -77,6 +94,11 @@ object Parser {
 
     fun onTagOpening() {
         Log.d(TAG, "onTagOpening")
+
+        val tag = currentToken?.value?.let { Tag.fromString(it) } ?: return error()
+
+        val currentNode = Node(++counterId, tag, -1)
+        stack.add(currentNode)
     }
 
     fun onTagOpeningReceived() {
@@ -85,6 +107,7 @@ object Parser {
 
     fun onTextReceived() {
         Log.d(TAG, "onTextReceived")
+        currentToken?.value?.let { stack.last().textList.add(it) }
     }
 
     fun onCorrectionText() {
@@ -97,14 +120,22 @@ object Parser {
 
     fun onTagClosed() {
         Log.d(TAG, "onTagClosed")
+        val tag = currentToken?.value
+        if (tag == null || tag != stack.last().tag.pattern) return error()
     }
 
     fun onEndTag() {
         Log.d(TAG, "onEndTag")
+        val receivedNode = stack.removeAt(stack.size - 1)
+        receivedNode.nodeId = stack.last().id
+        stack.last().nodes.add(receivedNode)
     }
 
     fun onEnd() {
         Log.d(TAG, "onEnd")
+        if (stack.size != 1) return error()
+        stack.remove(root)
+        if (stack.size != 0) return error()
     }
 }
 
