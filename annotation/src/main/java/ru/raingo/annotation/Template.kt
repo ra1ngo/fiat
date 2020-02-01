@@ -1,5 +1,5 @@
 package ru.raingo.annotation
 
 @Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.CLASS)
 annotation class Template(val path: Int)

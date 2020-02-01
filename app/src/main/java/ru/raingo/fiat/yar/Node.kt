@@ -12,7 +12,7 @@ enum class Tag(val pattern: String) {
 data class Node(
     val id: Int,
     val tag: Tag,
-    var nodeId: Int?,
+    var parentId: Int?,
     val textList: MutableList<String> = mutableListOf(),
     val nodes: MutableList<Node> = mutableListOf()
 )

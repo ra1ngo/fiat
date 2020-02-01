@@ -13,11 +13,17 @@ class ViewBuilder(val context: Context) {
     private lateinit var root: ViewGroup
     private val stack: MutableList<View> = mutableListOf()
 
-    fun build(ast: Node): ViewGroup? {
-        processingAst(ast)
+    fun build(ast: Ast): ViewGroup? {
+        processingAst(ast.root)
 
         return root
     }
+
+//    fun build(ast: Node): ViewGroup? {
+//        processingAst(ast)
+//
+//        return root
+//    }
 
     private fun processingAst(node: Node) {
         val view = processingNode(node)

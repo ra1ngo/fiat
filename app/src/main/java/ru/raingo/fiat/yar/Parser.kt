@@ -127,7 +127,7 @@ object Parser {
     fun onEndTag() {
         Log.d(TAG, "onEndTag")
         val receivedNode = stack.removeAt(stack.size - 1)
-        receivedNode.nodeId = stack.last().id
+        receivedNode.parentId = stack.last().id
         stack.last().nodes.add(receivedNode)
     }
 
