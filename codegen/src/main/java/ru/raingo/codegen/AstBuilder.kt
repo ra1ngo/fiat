@@ -1,6 +1,6 @@
 package ru.raingo.codegen
 
-class AstBuilder(val className: String, val packageName: String) {
+class AstBuilder(val className: String, val packageName: String, path: String) {
     fun getContent(): String {
         return """
             package $packageName
