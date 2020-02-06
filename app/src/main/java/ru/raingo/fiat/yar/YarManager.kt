@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.ViewGroup
 import ru.raingo.fiat.R
 import java.io.BufferedReader
+import java.io.File
 import java.io.InputStreamReader
 
 class YarManager(private val context: Context) {
@@ -61,4 +62,20 @@ class YarManager(private val context: Context) {
         Log.d("Yar", "strings $output")
         return output
     }
+
+//    fun readFile(path: String): List<String> {
+//        val inputStream = context.resources.openRawResource(path)
+//        val reader = BufferedReader(InputStreamReader(inputStream, "UTF-8"))
+//
+//        val output = ArrayList<String>()
+//        var line = reader.readLine()
+//        while (line != null) {
+//            output.add(line)
+//            line = reader.readLine()
+//        }
+//        reader.close()
+//
+//        Log.d("Yar", "strings $output")
+//        return output
+//    }
 }

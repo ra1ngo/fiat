@@ -1,7 +1,15 @@
 package ru.raingo.codegen
 
-class AstBuilder(val className: String, val packageName: String, path: String) {
-    fun getContent(): String {
+import java.io.File
+import javax.annotation.processing.Messager
+
+class AstBuilder(private val log: Messager) {
+    fun build(
+        className: String,
+        packageName: String,
+        file: File,
+        fields: Map<String, String>
+    ): String {
         return """
             package $packageName
             

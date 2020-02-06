@@ -4,23 +4,20 @@ import com.google.auto.service.AutoService
 import ru.raingo.annotation.Template
 import java.io.File
 import java.io.IOException
-import java.io.Writer
-import java.net.URI
-import java.net.URL
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.annotation.processing.*
 import javax.lang.model.SourceVersion
-import javax.lang.model.element.TypeElement
+import javax.lang.model.element.*
+import javax.lang.model.util.ElementScanner8
 import javax.tools.Diagnostic
-import javax.tools.StandardLocation
 
 
 @AutoService(Processor::class) // For registering the service
 @SupportedSourceVersion(SourceVersion.RELEASE_8) // to support Java 8
 @SupportedOptions(AstGenerator.KAPT_KOTLIN_GENERATED_OPTION_NAME)
 class AstGenerator : AbstractProcessor(){
-    val pathName = "path()"
+    private lateinit var log: Messager
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
         return mutableSetOf(Template::class.java.name)
@@ -33,17 +30,22 @@ class AstGenerator : AbstractProcessor(){
 
     override fun process(annotations: MutableSet<out TypeElement>?, roundEnvironment: RoundEnvironment?): Boolean {
         if (annotations == null || annotations.isEmpty()) return false
+        log =  processingEnv.messager
 
         roundEnvironment?.getElementsAnnotatedWith(Template::class.java)
             ?.forEach {
-                val log = processingEnv.messager
+                if (!it.kind.isClass || !it.modifiers.contains(Modifier.ABSTRACT)) {
+                    log.printMessage(Diagnostic.Kind.ERROR, "Помечанный аннотацией должен быть абстрактным классом")
+                    return false
+                }
+
                 val el = processingEnv.elementUtils
 
                 var path: String? = null
 
                 for (i in el.getAllAnnotationMirrors(it)) {
                     for (e in i.elementValues) {
-                        if (e.key.toString() == pathName) path = e.value.toString()
+                        if (e.key.toString() == PATH_ATTR_NAME) path = e.value.toString()
                     }
                 }
 
@@ -52,55 +54,72 @@ class AstGenerator : AbstractProcessor(){
                     return false
                 }
 
-                //TODO попробовать получать путь отсюда:
-                //log.printMessage(Diagnostic.Kind.WARNING, "this.classLoader ${this::class.java.protectionDomain.codeSource.location.path}")
+                val fields = linkedMapOf<String, String>()
+                for (a in it.enclosedElements) {
+                    if (a.kind != ElementKind.CONSTRUCTOR) continue
 
-                val pp = findRootPath()
-                log.printMessage(Diagnostic.Kind.WARNING, "pp: $pp")
+                    a.accept(object : ElementScanner8<Void, Void?>() {
+                        override fun visitVariable(field: VariableElement?, p1: Void?): Void? {
+                            //так можно узнать значение только полей, но не параметров
+                            //скорее всего это невозможно, если верить гуглу
+                            //log.printMessage(Diagnostic.Kind.WARNING, "constantValue ${field?.constantValue}")
 
+                            fields[field.toString()] = field?.asType().toString()
 
-
-
-
-
-
-
-
-
-
-
-
-                log.printMessage(Diagnostic.Kind.WARNING, "processingEnv.options: ${processingEnv.options}")
-                //log.printMessage(Diagnostic.Kind.WARNING, "contextClassLoader: ${Thread.currentThread().contextClassLoader}")
-                //log.printMessage(Diagnostic.Kind.WARNING, "contextClassLoader.parent: ${Thread.currentThread().contextClassLoader.parent}")
-
-
-                val file = File("/home/raingo/AndroidStudioProjects/Fiat/app/src/main/java/ru/raingo/fiat/views")
-                log.printMessage(Diagnostic.Kind.WARNING, "file.absoluteFile: ${file.absoluteFile}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file.canonicalPath: ${file.canonicalPath}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file.isDirectory: ${file.isDirectory}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file.canRead(): ${file.canRead()}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file.listFiles(): ${file.listFiles()}")
-
-                val fileSeparator = System.getProperty("file.separator")
-                val absoluteFilePth = "app" + fileSeparator + "src" + fileSeparator + "main" + fileSeparator + "java" + fileSeparator +
-                        "ru"  + fileSeparator + "raingo"  + fileSeparator + "fiat"  + fileSeparator + "views"
-                val file1 = File(absoluteFilePth)
-                log.printMessage(Diagnostic.Kind.WARNING, "file1.absoluteFile: ${file1.absoluteFile}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file1.canonicalPath: ${file1.canonicalPath}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file1.isDirectory: ${file1.isDirectory}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file1.canRead(): ${file1.canRead()}")
-                log.printMessage(Diagnostic.Kind.WARNING, "file1.listFiles(): ${file1.listFiles()}")
-
+                            return super.visitVariable(field, p1)
+                        }
+                    }, null)
+                }
 
                 val fieldName = it.simpleName.toString()
-                val pack = processingEnv.elementUtils.getPackageOf(it).toString()
-                generateAst(fieldName, pack, path)
+                val pack = el.getPackageOf(it).toString()
+                generateAst(fieldName, pack, path, fields)
             }
 
         return true
     }
 
+    private fun generateAst(
+        className: String,
+        pack: String,
+        path: String,
+        fields: Map<String, String>
+    ) {
+        val fileName = "Yard$className"
+        val fileTemplate = findFile(path) ?: return
+
+        val fileContent = AstBuilder(log).build(fileName, pack, fileTemplate, fields)
+
+        val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
+        val file = File(kaptKotlinGeneratedDir, "$fileName.kt")
+        file.writeText(fileContent)
+    }
+
+    private fun findFile(pathAttr: String): File? {
+        val pathAttrPure = pathAttr.replace("\"", "")
+        if (pathAttrPure.substringAfterLast(".") != "yar") {
+            log.printMessage(Diagnostic.Kind.WARNING, "Файл должен быть с расширением \".yar\"")
+        }
+
+        val pathRoot = findRootPath()
+        val sep = System.getProperty("file.separator")
+        val pathAttrCorrect = pathAttrPure.replace(".", sep).reversed().replaceFirst(sep, ".").reversed()
+
+        var path = pathRoot.toString() + sep + "src" + sep + "main" + sep + "java" + sep + pathAttrCorrect
+        var file = File(path)
+        if (file.exists()) return file
+
+        path = pathRoot?.parent.toString() + sep + pathAttrCorrect
+        file = File(path)
+        if (file.exists()) return file
+
+        log.printMessage(Diagnostic.Kind.ERROR, "Не найден файл по пути: $path")
+        return null
+    }
+
+    //TODO попробовать получать путь отсюда:
+    //log.printMessage(Diagnostic.Kind.WARNING, "this.classLoader ${this::class.java.protectionDomain.codeSource.location.path}")
+    //TODO еще попробовать брать из градл переменной
     private fun findRootPath(): Path? {
         try {
             val tmp = processingEnv.filer.createSourceFile("tmp" + System.currentTimeMillis())
@@ -115,17 +134,8 @@ class AstGenerator : AbstractProcessor(){
         return null
     }
 
-    private fun generateAst(className: String, pack: String, path: String){
-        val fileName = "Yard$className"
-        val fileContent = AstBuilder(fileName, pack, path).getContent()
-
-        val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
-        val file = File(kaptKotlinGeneratedDir, "$fileName.kt")
-
-        file.writeText(fileContent)
-    }
-
     companion object {
         const val KAPT_KOTLIN_GENERATED_OPTION_NAME = "kapt.kotlin.generated"
+        const val PATH_ATTR_NAME = "path()"
     }
 }
