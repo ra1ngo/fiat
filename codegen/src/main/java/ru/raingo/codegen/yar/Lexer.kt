@@ -1,7 +1,6 @@
-package ru.raingo.fiat.yar
+package ru.raingo.codegen.yar
 
 import android.util.Log
-import java.util.regex.Pattern
 
 enum class Lexeme(val index: Int) {
     //символы

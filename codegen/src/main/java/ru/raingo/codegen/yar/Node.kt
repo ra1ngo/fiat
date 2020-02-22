@@ -1,4 +1,4 @@
-package ru.raingo.fiat.yar
+package ru.raingo.codegen.yar
 
 enum class Tag(val pattern: String) {
     ROOT("root"), LAY("lay"), TEXT("text");

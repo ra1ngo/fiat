@@ -6,7 +6,7 @@ import ru.raingo.fiat.MainActivity
 @Template("ru.raingo.fiat.views.index.yar")
 abstract class Index (
     val act: MainActivity,
-    val str: String = "ssssss11111111111s"
+    val str: String = "не поддерживаются значения по умолчанию в конструкторе"
 ) {
-    val i: String = "ii"
+    val i: String = "тут все норм"
 }

@@ -15,8 +15,8 @@ import javax.tools.Diagnostic
 
 @AutoService(Processor::class) // For registering the service
 @SupportedSourceVersion(SourceVersion.RELEASE_8) // to support Java 8
-@SupportedOptions(AstGenerator.KAPT_KOTLIN_GENERATED_OPTION_NAME)
-class AstGenerator : AbstractProcessor(){
+@SupportedOptions(ComponentProcessor.KAPT_KOTLIN_GENERATED_OPTION_NAME)
+class ComponentProcessor : AbstractProcessor(){
     private lateinit var log: Messager
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
@@ -88,7 +88,7 @@ class AstGenerator : AbstractProcessor(){
         val fileName = "Yard$className"
         val fileTemplate = findFile(path) ?: return
 
-        val fileContent = AstBuilder(log).build(fileName, pack, fileTemplate, fields)
+        val fileContent = ComponentBuilder(log).build(fileName, pack, fileTemplate, fields)
 
         val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
         val file = File(kaptKotlinGeneratedDir, "$fileName.kt")

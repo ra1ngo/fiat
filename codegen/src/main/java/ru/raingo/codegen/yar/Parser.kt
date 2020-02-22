@@ -1,4 +1,4 @@
-package ru.raingo.fiat.yar
+package ru.raingo.codegen.yar
 
 import android.util.Log
 
