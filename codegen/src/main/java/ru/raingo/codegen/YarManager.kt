@@ -17,7 +17,7 @@ class YarManager(/*private val context: Context*/) {
 //    }
 //
 //    fun createAstNode() {
-//        val path = R.raw.index
+//        val path = R.raw.TODO
 //        val strings = readFile(path)
 //        val tokens = Lexer.tokenize(strings)
 //        val root = Parser.parse(tokens)

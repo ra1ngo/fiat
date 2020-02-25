@@ -63,8 +63,10 @@ class ComponentProcessor : AbstractProcessor(){
                             //так можно узнать значение только полей, но не параметров
                             //скорее всего это невозможно, если верить гуглу
                             //log.printMessage(Diagnostic.Kind.WARNING, "constantValue ${field?.constantValue}")
-
-                            fields[field.toString()] = field?.asType().toString()
+                            //log.printMessage(Diagnostic.Kind.ERROR, "field $field")
+                            var type = field?.asType().toString()
+                            if (type == "java.lang.String") type = "kotlin.String"
+                            fields[field.toString()] = type
 
                             return super.visitVariable(field, p1)
                         }
@@ -85,14 +87,17 @@ class ComponentProcessor : AbstractProcessor(){
         path: String,
         fields: Map<String, String>
     ) {
-        val fileName = "Yard$className"
+        val prefixClassName = "Yard"
+        val fileName = "$prefixClassName$className"
         val fileTemplate = findFile(path) ?: return
 
-        val fileContent = ComponentBuilder(log).build(fileName, pack, fileTemplate, fields)
+        val fileContent = ComponentBuilder(log).build(prefixClassName, className, pack, fileTemplate, fields)
+        //fileContent.writeTo(System.out)
+        //fileContent.writeTo(processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME])
 
         val kaptKotlinGeneratedDir = processingEnv.options[KAPT_KOTLIN_GENERATED_OPTION_NAME]
         val file = File(kaptKotlinGeneratedDir, "$fileName.kt")
-        file.writeText(fileContent)
+        fileContent.writeTo(file)
     }
 
     private fun findFile(pathAttr: String): File? {

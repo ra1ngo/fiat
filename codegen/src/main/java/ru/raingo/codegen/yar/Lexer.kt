@@ -1,7 +1,5 @@
 package ru.raingo.codegen.yar
 
-import android.util.Log
-
 enum class Lexeme(val index: Int) {
     //символы
     LAB(0), RAB(1), LCB(2),
@@ -66,7 +64,7 @@ object Lexer {
 
     fun logStringLexeme(tokens: List<Token>) {
         for (token in tokens) {
-            Log.d(TAG, "token ${token.type}: ${token.value}")
+            //Log.d(TAG, "token ${token.type}: ${token.value}")
         }
     }
 
@@ -97,13 +95,13 @@ object Lexer {
                 val targetString = string.subSequence(index, posEnd + 1)
 
                 if (pattern == targetString) {
-                    Log.d(TAG, "$line,${index+1} string $targetString, pattern $pattern ADD TO BUFFER")
+                    //Log.d(TAG, "$line,${TODO+1} string $targetString, pattern $pattern ADD TO BUFFER")
                     buffer.add(Pair(lexeme, pattern))
                     break
                 }
 
                 val patternPart = pattern.subSequence(0, posEnd + 1 - index)
-                Log.d(TAG, "$line,${index+1} string $targetString, pattern $patternPart")
+                //Log.d(TAG, "$line,${TODO+1} string $targetString, pattern $patternPart")
 
                 if (patternPart == targetString) {
                     posEnd++
@@ -113,7 +111,7 @@ object Lexer {
                 break
             }
         }
-        Log.d(TAG, " \r\n")
+        //Log.d(TAG, " \r\n")
 
         return buffer.maxBy { it.second?.length ?: 0 }
     }

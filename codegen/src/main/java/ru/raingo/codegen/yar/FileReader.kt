@@ -19,7 +19,7 @@ object FileReader {
         }
         reader.close()
 
-        log.printMessage(Diagnostic.Kind.ERROR, "strings $output")
+        //log.printMessage(Diagnostic.Kind.ERROR, "strings $output")
         return output
     }
 }

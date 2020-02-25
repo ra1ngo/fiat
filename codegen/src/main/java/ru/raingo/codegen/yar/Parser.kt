@@ -1,7 +1,5 @@
 package ru.raingo.codegen.yar
 
-import android.util.Log
-
 enum class State(val index: Int) {
     START(0),                  //начало парсинга (получение первого символа)
     START_TAG(1),              //получен символ "<", ждем Токен с названием тэга
@@ -55,12 +53,18 @@ object Parser {
             currentToken = token
 
             val lexemeIndex: Int = token.getLexemeIndex()
-            Log.d(TAG, "state $state, state.index ${state.index}, lexemeIndex $lexemeIndex")
+            //Log.d(TAG, "state $state, state.TODO ${state.TODO}, lexemeIndex $lexemeIndex")
             val stateIndex: Int = transitionTable[state.index][lexemeIndex]
-            if (stateIndex == 0) { Log.d(TAG, "ошибка stateIndex == 0"); break }
+            if (stateIndex == 0) {
+                //Log.d(TAG, "ошибка stateIndex == 0")
+                break
+            }
 
             val nextState = State.fromIndex(stateIndex)
-            if (nextState == null) { Log.d(TAG, "ошибка state is null"); break }
+            if (nextState == null) {
+                //Log.d(TAG, "ошибка state is null")
+                break
+            }
             state = State.fromIndex(stateIndex)!!
 
             val action = actions[state.index]
@@ -74,7 +78,7 @@ object Parser {
 
     fun error() {
         error = true
-        Log.d(TAG, "error $counterId\n$root\n$stack")
+        //Log.d(TAG, "error $counterId\n$root\n$stack")
     }
 
     //ACTIONS
@@ -84,16 +88,16 @@ object Parser {
     )
 
     fun onStart() {
-        Log.d(TAG, "\n===============\n")
-        Log.d(TAG, "onStart")
+        //Log.d(TAG, "\n===============\n")
+        //Log.d(TAG, "onStart")
     }
 
     fun onStartTag() {
-        Log.d(TAG, "onStartTag")
+        //Log.d(TAG, "onStartTag")
     }
 
     fun onTagOpening() {
-        Log.d(TAG, "onTagOpening")
+        //Log.d(TAG, "onTagOpening")
 
         val tag = currentToken?.value?.let { Tag.fromString(it) } ?: return error()
 
@@ -102,37 +106,37 @@ object Parser {
     }
 
     fun onTagOpeningReceived() {
-        Log.d(TAG, "onTagOpeningReceived")
+        //Log.d(TAG, "onTagOpeningReceived")
     }
 
     fun onTextReceived() {
-        Log.d(TAG, "onTextReceived")
+        //Log.d(TAG, "onTextReceived")
         currentToken?.value?.let { stack.last().textList.add(it) }
     }
 
     fun onCorrectionText() {
-        Log.d(TAG, "onCorrectionText")
+        //Log.d(TAG, "onCorrectionText")
     }
 
     fun onWaitClosedTag() {
-        Log.d(TAG, "onWaitClosedTag")
+        //Log.d(TAG, "onWaitClosedTag")
     }
 
     fun onTagClosed() {
-        Log.d(TAG, "onTagClosed")
+        //Log.d(TAG, "onTagClosed")
         val tag = currentToken?.value
         if (tag == null || tag != stack.last().tag.pattern) return error()
     }
 
     fun onEndTag() {
-        Log.d(TAG, "onEndTag")
+        //Log.d(TAG, "onEndTag")
         val receivedNode = stack.removeAt(stack.size - 1)
         receivedNode.parentId = stack.last().id
         stack.last().nodes.add(receivedNode)
     }
 
     fun onEnd() {
-        Log.d(TAG, "onEnd")
+        //Log.d(TAG, "onEnd")
         if (stack.size != 1) return error()
         stack.remove(root)
         if (stack.size != 0) return error()
