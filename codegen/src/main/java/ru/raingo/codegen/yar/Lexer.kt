@@ -1,20 +1,25 @@
 package ru.raingo.codegen.yar
 
+import javax.annotation.processing.Messager
+
 enum class Lexeme(val index: Int) {
     //символы
     LAB(0), RAB(1), LCB(2),
+    LMB(3), RMB(4),
 
     //теги
-    TAG(3),
+    TAG(5),
 
     //числа и строки
-    STR(4);
+    STR(6);
 }
 
 val PATTERN = mapOf(
     "<" to Lexeme.LAB,      //left angle bracket
     ">" to Lexeme.RAB,      //right angle bracket
     "</" to Lexeme.LCB,     //left close bracket
+    "{{" to Lexeme.LMB,     //left mustache bracket
+    "}}" to Lexeme.RMB,     //right mustache bracket
 
     //TAGS
     "lay" to Lexeme.TAG,
@@ -28,8 +33,7 @@ class Token (
     fun getLexemeIndex(): Int = type.index
 }
 
-object Lexer {
-    const val TAG = "YarLexer"
+class Lexer(private val log: Messager) {
 
     fun tokenize(strings: List<String>): List<Token> {
         val tokens = mutableListOf<Token>()

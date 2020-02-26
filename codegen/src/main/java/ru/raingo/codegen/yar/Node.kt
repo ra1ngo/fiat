@@ -14,5 +14,6 @@ data class Node(
     val tag: Tag,
     var parentId: Int?,
     val textList: MutableList<String> = mutableListOf(),
+    val scriptList: MutableList<String> = mutableListOf(),
     val nodes: MutableList<Node> = mutableListOf()
 )

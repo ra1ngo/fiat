@@ -1,5 +1,7 @@
 package ru.raingo.codegen.yar
 
+import javax.annotation.processing.Messager
+
 enum class State(val index: Int) {
     START(0),                  //начало парсинга (получение первого символа)
     START_TAG(1),              //получен символ "<", ждем Токен с названием тэга
@@ -10,7 +12,10 @@ enum class State(val index: Int) {
     WAIT_CLOSED_TAG(6),        //получен символ "</", ждем Токен с названием тэга
     TAG_CLOSED(7),             //начат процесс формирования закрывающего тэга, получено название тэга, сравнивается название открывающего и закрывающего тэга, ожидается символ ">"
     END_TAG(8),                //тэг сформирован, создаем ноду тэга
-    END(9);                    //конец парсинга (получен последний символ)
+    END(9),                    //конец парсинга (получен последний символ)
+    MUSTACHE_START(10),
+    MUSTACHE_RECEIVED(11),
+    MUSTACHE_END(12);
 
     companion object {
         private val map = values().associateBy(State::index)
@@ -20,21 +25,23 @@ enum class State(val index: Int) {
 
 //таблица переходов
 val transitionTable = listOf(
-    //      LAB  RAB  LCB  TAG  STR
-    listOf(  1,   0,   0,   0,   0  ),  //START
-    listOf(  0,   0,   0,   2,   0  ),  //START_TAG
-    listOf(  0,   3,   0,   0,   0  ),  //TAG_OPENING
-    listOf(  1,   0,   6,   0,   4  ),  //TAG_OPENING_RECEIVED
-    listOf(  1,   0,   6,   0,   4  ),  //TEXT_RECEIVED
-    listOf(  0,   0,   0,   0,   0  ),  //CORRECTION_TEXT
-    listOf(  0,   0,   0,   7,   0  ),  //WAIT_CLOSED_TAG
-    listOf(  0,   8,   0,   0,   0  ),  //TAG_CLOSED
-    listOf(  1,   0,   6,   0,   4  ),  //END_TAG
-    listOf(  0,   0,   0,   0,   0  )   //END
+    //      LAB  RAB  LCB  TAG  STR  LMB  RMB
+    listOf(  1,   0,   0,   0,   0,   0,   0  ),  //START
+    listOf(  0,   0,   0,   2,   0,   0,   0  ),  //START_TAG
+    listOf(  0,   3,   0,   0,   0,   0,   0  ),  //TAG_OPENING
+    listOf(  1,   0,   6,   0,   4,   0,   0  ),  //TAG_OPENING_RECEIVED
+    listOf(  1,   0,   6,   0,   4,  10,   0  ),  //TEXT_RECEIVED
+    listOf(  0,   0,   0,   0,   0,   0,   0  ),  //CORRECTION_TEXT
+    listOf(  0,   0,   0,   7,   0,   0,   0  ),  //WAIT_CLOSED_TAG
+    listOf(  0,   8,   0,   0,   0,   0,   0  ),  //TAG_CLOSED
+    listOf(  1,   0,   6,   0,   4,   0,   0  ),  //END_TAG
+    listOf(  0,   0,   0,   0,   0,   0,   0  ),  //END
+    listOf(  0,   0,   0,   0,   0,   0,   0  ),  //MUSTACHE_START
+    listOf(  0,   0,   0,   0,  11,   0,  12  ),  //MUSTACHE_RECEIVED
+    listOf(  1,   0,   6,   0,   4,  10,   0  )   //MUSTACHE_END
 )
 
-object Parser {
-    const val TAG = "YarParser"
+class Parser(private val log: Messager)  {
     //val fsm = FiniteStateMachine()
     var state = State.START
     var currentToken: Token? = null
@@ -43,6 +50,8 @@ object Parser {
     val root = Node(counterId, Tag.ROOT, -1)
     val stack: MutableList<Node> = mutableListOf(root)
     var error = false
+
+    var currentMustache = ""
 
     fun parse(tokens: List<Token>): Node {
         actions[state.index]()  //больше вызываться этот хендлер не будет, 0 - будет ошибкой/
@@ -84,7 +93,8 @@ object Parser {
     //ACTIONS
     val actions = listOf(
         ::onStart, ::onStartTag, ::onTagOpening, ::onTagOpeningReceived, ::onTextReceived,
-        ::onCorrectionText, ::onWaitClosedTag, ::onTagClosed, ::onEndTag, ::onEnd
+        ::onCorrectionText, ::onWaitClosedTag, ::onTagClosed, ::onEndTag, ::onEnd,
+        ::onMustacheStart, ::onMustacheReceived, ::onMustacheEnd
     )
 
     fun onStart() {
@@ -140,6 +150,29 @@ object Parser {
         if (stack.size != 1) return error()
         stack.remove(root)
         if (stack.size != 0) return error()
+    }
+
+    fun onMustacheStart() {
+        //Log.d(TAG, "onMustacheStart")
+
+    }
+
+    fun onMustacheReceived() {
+        //Log.d(TAG, "onMustacheReceived")
+        if (currentToken?.value == null) return
+
+        if (currentMustache != "") currentMustache += "\n"
+
+        currentMustache += currentToken?.value
+    }
+
+    fun onMustacheEnd() {
+        //Log.d(TAG, "onMustacheEnd")
+        stack.last().scriptList.add(currentMustache)
+        val scriptId = stack.last().scriptList.size - 1
+        stack.last().textList.add("%S$scriptId")
+
+        currentMustache = ""
     }
 }
 

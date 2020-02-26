@@ -7,10 +7,7 @@ import java.io.InputStreamReader
 import javax.tools.Diagnostic
 import javax.tools.JavaFileObject
 
-class Generator(
-    private val log: Messager,
-    private val prefixClassName: String
-) {
+class Generator(private val log: Messager, private val prefixClassName: String) {
     fun generate(
         root: Node,
         className: String,

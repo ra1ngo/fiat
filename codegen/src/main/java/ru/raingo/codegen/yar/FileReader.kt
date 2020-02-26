@@ -6,7 +6,7 @@ import java.io.InputStreamReader
 import javax.annotation.processing.Messager
 import javax.tools.Diagnostic
 
-object FileReader {
+class FileReader(private val log: Messager) {
     fun readFile(log: Messager, file: File): List<String> {
         val inputStream = file.inputStream()
         val reader = BufferedReader(InputStreamReader(inputStream, "UTF-8"))

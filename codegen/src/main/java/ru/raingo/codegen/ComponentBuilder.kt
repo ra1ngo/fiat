@@ -14,9 +14,9 @@ class ComponentBuilder(private val log: Messager) {
         file: File,
         fields: Map<String, String>
     ): FileSpec {
-        val strings = FileReader.readFile(log, file)
-        val tokens = Lexer.tokenize(strings)
-        val root = Parser.parse(tokens)
+        val strings = FileReader(log).readFile(log, file)
+        val tokens = Lexer(log).tokenize(strings)
+        val root = Parser(log).parse(tokens)
         val component = Generator(log, prefixClassName).generate(root, className, packageName, fields)
 
         //readAst(root)
